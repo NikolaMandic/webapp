@@ -1,0 +1,36 @@
+;;; from timothy baldridge's talk clojure/async
+
+(require 'cljs.repl.browser)
+
+(cemerick.piggieback/cljs-repl
+  :repl-env (cljs.repl.browser/repl-env :port 9000))
+
+(ns webapp1.core
+  (:require [cljs.core.async :refer [chan put! take! timeout] :as async]
+            [clojure.walk :refer [prewalk]]
+            [goog.net.XhrIo])
+  (:require-macros [cljs.core.async.macros :refer [go]]))
+
+(defn http-get [url]
+  (let [c (chan 1)]
+    (goog.net.XhrIo/send url (fn [e]
+                               (->> e
+                                    .-target
+                                    .getResponseJson
+                                    js->clj
+                                    fixup-keys
+                                    (put! c))))
+    c))
+(defn m
+  (js/alert "clojure"))
+
+(def script (.createElement js/document "file.js"))
+(.type script "text/javascript" )
+(.src script "file.js")
+(.onload script m)
+(.appendChild js/document/body script) 
+
+(defn -main
+  "I don't do a whole lot ... yet."
+  [& args]
+  (println "Hello, World!"))
